@@ -2,3 +2,7 @@
 .gitignore
 .idea/
 FINAL_sromovsky.iml
+/js/popper-1-12-3.js
+/js/jquery-3-2-1-slim.js
+/js/bootstrap_v4-0-0-beta-2.js
+/css/bootstrap_v4-0-0-beta-2.css
