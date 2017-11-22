@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="css/bootstrap_v4-0-0-beta-2.css">
     <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -17,20 +18,15 @@
                 <div class="inner">
                     <h3 class="masthead-brand">Webové technológie 1</h3>
                     <nav class="nav nav-masthead">
-                        <a class="nav-link active" href="index.html">Domov</a>
-                        <a class="nav-link" href="game.html">Hra</a>
+                        <a class="nav-link" href="index.html">Domov</a>
+                        <a class="nav-link active" href="game.html">Hra</a>
                         <a class="nav-link" href="#">Kontakt</a>
                     </nav>
                 </div>
             </header>
 
             <main role="main" class="inner cover">
-                <h1 class="cover-heading">Záverečné zadanie</h1>
-                <p class="lead">Hra je inšpirovaná mobilnou aplikáciou pre Android s názvom „Roll the Ball “.<br>
-                    Veľkosť hracej plochy pre každú hru je definovaná v XML súbore v elemente size. Bloky, ktoré sú zadefinované v XML súbore, sú rozmiestnené na hracej ploche. Bloky sa premiestňujú ťahaním tak, aby užívateľ poskladal dráhu pre guličku, ktorá by mala prejsť odzačiatku až po koniec. Animácia pohybu guličky po vyskladaní dráhy je vítaná, nie je však povinná. </p>
-                <p class="lead">
-                    <a href="game.html" class="btn btn-lg btn-secondary">Hra</a>
-                </p>
+                <canvas id="canvas" class="canvas"></canvas>
             </main>
 
             <footer class="mastfoot">
@@ -44,7 +40,9 @@
 </div>
 
 <script src="js/jquery-3-2-1-slim.js"></script>
+<script src="js/jquery-1.9.1.min.js"></script>
 <script src="js/popper-1-12-3.js"></script>
 <script src="js/bootstrap_v4-0-0-beta-2.js"></script>
+<script src="js/game.js"></script>
 </body>
 </html>
