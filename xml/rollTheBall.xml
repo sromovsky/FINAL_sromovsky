@@ -95,8 +95,8 @@
         <vertical>4</vertical>
         <horizontal>4</horizontal>
       </size>
-      <task>S270,E,T90,F90;T0,T180,D0,B;B,E,E,B;B,T0,T270,B</task>
-      <solution>S270,E,T90,F90;T0,T180,D0,B;B,T0,T270,B;B,E,E,B</solution>
+      <task>S0,E,T90,F90;T0,T180,D0,B;B,E,E,B;B,T0,T270,B</task>
+      <solution>S0,E,T90,F90;T0,T180,D0,B;B,T0,T270,B;B,E,E,B</solution>
     </game>
     <game>
       <size>

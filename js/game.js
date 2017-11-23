@@ -31,6 +31,7 @@ function OnInit() {
     document.onmouseup = function (event) {
         if (isWinner()) {
             console.log('WINNER!');
+            document.getElementById('display').innerHTML = 'Winner!';
         }
         selectedTile = undefined;
     };
