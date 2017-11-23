@@ -103,7 +103,7 @@
         <vertical>4</vertical>
         <horizontal>4</horizontal>
       </size>
-      <task>D90,T90,E,E,;E,B,D90,T180;D0,T180,T90,T270,S0,E,T0,F270</task>
+      <task>D90,T90,E,E;E,B,D90,T180;D0,T180,T90,T270;S0,E,T0,F270</task>
       <solution>E,E,E,E;T90,D90,D90,T180;D0,E,T90,T270;S0,E,T0,F270</solution>
     </game>
     <game>
