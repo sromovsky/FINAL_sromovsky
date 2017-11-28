@@ -50,7 +50,35 @@ function OnInit() {
 
 function isWinner() {
     getActual();
-    return actual === solutions.replace(/;/g,',') + ',';
+
+    if (Array.isArray(solutions)) {
+
+        for (var s in solutions) {
+            if (actualIsSolution(actual, solutions[s].replace(/;/g,',') + ',')) {
+                return true;
+            }
+        }
+    } else {
+        var solution = solutions.replace(/;/g,',') + ',';
+        if (actualIsSolution(actual, solution)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function actualIsSolution(act, sol) {
+    var actualArray = act.split(',');
+    var solutionArray = sol.split(',');
+
+    for (var tile in actualArray) {
+        if (actualArray[tile][0] === 'T' || actualArray[tile][0] === 'D') {
+            if (actualArray[tile][0] !== solutionArray[tile][0]) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 function getActual() {
