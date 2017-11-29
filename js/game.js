@@ -1,7 +1,10 @@
+document.getElementById('undoBtn').disabled = true;
 const canvas = document.getElementById('canvas');
 const graphics = canvas.getContext('2d');
 const edgeSize = 800;
-const tiles = [];
+var tiles = [];
+
+var historyOfMoves = [];
 
 var allTiles = [];
 var json;
@@ -11,7 +14,6 @@ var selectedTile;
 
 var solutions;
 var actual;
-
 
 function OnInit() {
     canvas.width = edgeSize;
@@ -24,11 +26,12 @@ function OnInit() {
     drawTiles();
 
 
-    canvas.onmousedown = function (event) {
+    canvas.onmousedown = function(event) {
         selectedTile = getPosition(event.layerX, event.layerY);
     };
 
-    document.onmouseup = function (event) {
+    document.onmouseup = function(event) {
+        getActual();
         if (isWinner()) {
             console.log('WINNER!');
             document.getElementById('display').innerHTML = 'Winner!';
@@ -36,7 +39,7 @@ function OnInit() {
         selectedTile = undefined;
     };
 
-    canvas.onmousemove = function (event) {
+    canvas.onmousemove = function(event) {
         if (selectedTile !== undefined) {
             var newPosition = getPosition(event.layerX, event.layerY);
             if (canChange(tiles[newPosition.index], tiles[selectedTile.index])) {
@@ -45,14 +48,20 @@ function OnInit() {
                 selectedTile = getPosition(event.layerX, event.layerY);
             }
         }
-    };
+    }
+}
+
+function newMoveToHistory() {
+    getActual();
+    document.getElementById('undoBtn').disabled = false;
+    historyOfMoves.push(actual);
+    if (historyOfMoves.length > 3) {
+        historyOfMoves.shift();
+    }
 }
 
 function isWinner() {
-    getActual();
-
     if (Array.isArray(solutions)) {
-
         for (var s in solutions) {
             if (actualIsSolution(actual, solutions[s].replace(/;/g,',') + ',')) {
                 return true;
@@ -73,7 +82,7 @@ function actualIsSolution(act, sol) {
 
     for (var tile in actualArray) {
         if (actualArray[tile][0] === 'T' || actualArray[tile][0] === 'D') {
-            if (actualArray[tile][0] !== solutionArray[tile][0]) {
+            if (actualArray[tile] !== solutionArray[tile]) {
                 return false;
             }
         }
@@ -100,6 +109,8 @@ function canChange(newTile, oldTile) {
 }
 
 function changeTiles(indexA, indexB) {
+    newMoveToHistory();
+
     const tmpImg = tiles[indexA].image;
     tiles[indexA].image = tiles[indexB].image;
     tiles[indexB].image = tmpImg;
@@ -160,6 +171,7 @@ function loadGame(gameLevel) {
 
     size = {verticalTiles: game.size.vertical, horizontalTiles: game.size.horizontal};
 
+    tiles = [];
     for (var y = 0; y < size.horizontalTiles; y++) {
         var columns = rows[y].split(',');
         for (var x = 0; x < size.verticalTiles; x++) {
@@ -168,6 +180,30 @@ function loadGame(gameLevel) {
             tiles.push(tile);
         }
     }
+}
+
+function undo() {
+    if (historyOfMoves.length > 0) {
+        loadGameFromHistoryString(historyOfMoves[historyOfMoves.length - 1]);
+        historyOfMoves.pop();
+        if (historyOfMoves.length === 0) {
+            document.getElementById('undoBtn').disabled = true;
+        }
+    }
+}
+
+function loadGameFromHistoryString(string) {
+    tiles = [];
+    for (var y = 0; y < size.horizontalTiles; y++) {
+        var tmpTiles = string.split(',');
+        for (var x = 0; x < size.verticalTiles; x++) {
+            const tile = {x: x, y: y, image: allTiles[tmpTiles[size.horizontalTiles* y + x]].image,
+                rotation: allTiles[tmpTiles[size.horizontalTiles * y + x]].rotation,
+                type: tmpTiles[size.horizontalTiles * y + x]};
+            tiles.push(tile);
+        }
+    }
+    drawTiles();
 }
 
 function drawTiles() {
