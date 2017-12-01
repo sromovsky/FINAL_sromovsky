@@ -26,9 +26,35 @@
             </header>
 
             <main role="main" class="inner cover">
-                <p id="display"></p>
-                <canvas id="canvas" class="canvas"></canvas>
-                <button id="undoBtn" class="btn btn-dark" onclick="undo()">Undo</button>
+                <div class="pb-2">
+                    <span class="no-wrap">Počet ťahov: <span id="displayMoves"></span>,</span>
+                    <span class="no-wrap">Najlepšie skóre: <span id="displayScore">---</span>,</span>
+                    <span class="no-wrap">Level: <span id="displayLevel"></span></span>
+                </div>
+                <div>
+                    <canvas id="canvas" class="canvas"></canvas>
+                </div>
+                <div class="btn-group mt-2" role="group" aria-label="Basic example">
+                    <button id="undoBtn" class="btn btn-light" onclick="undo()">Späť</button>
+                    <button id="resetBtn" class="btn btn-light" onclick="resetGame()">Reset</button>
+                    <button id="saveBtn" class="btn btn-light" onclick="saveGame()">Uložiť</button>
+                    <button id="nextBtn" class="btn btn-light" onclick="nextLevel()"></button>
+                </div>
+                <div class="font-italic font-weight-light small mt-2">
+                    Premiestňuj bloky ťahaním tak aby si vytvoril cestu od začiatku až po koniec, môžeš využiť aj krok spät.
+                    Snaž sa prejsť level s čo najmenším počtom ťahov.
+                    Najlepšie skóre znamená čo najmenej ťahov.
+                </div>
+                <div class="row justify-content-center">
+                    <div class="input-group border-light border col-12 col-sm-6 m-2 p-0">
+                        <input type="number" class="form-control" placeholder="Score" id="mockScore" aria-label="Score">
+                        <span class="input-group-btn">
+                            <button class="btn btn-dark btn-sm" type="button" onclick="setMockScore()">Nastaviť</button>
+                        </span>
+                        <select class="custom-select" id="levelSelect">
+                        </select>
+                    </div>
+                </div>
             </main>
 
             <footer class="mastfoot">

@@ -1,19 +1,19 @@
 document.getElementById('undoBtn').disabled = true;
-const canvas = document.getElementById('canvas');
-const graphics = canvas.getContext('2d');
-const edgeSize = 800;
-var tiles = [];
+var canvas = document.getElementById('canvas');
+var mockScoreInput = document.getElementById('mockScore');
+var levelSelect = document.getElementById('levelSelect');
+var graphics = canvas.getContext('2d');
+var edgeSize = 800;
 
+var tiles = [];
+var allLevels, actualLevel;
 var historyOfMoves = [];
 
-var allTiles = [];
-var json;
-var size;
+var allTiles = [], selectedTile;
+var json, size;
 
-var selectedTile;
-
-var solutions;
-var actual;
+var solutions, actual;
+var movesCount = 0;
 
 function OnInit() {
     canvas.width = edgeSize;
@@ -22,9 +22,35 @@ function OnInit() {
     loadJsonFromXml('xml/rollTheBall.xml');
     loadTiles();
 
-    loadGame(0);
-    drawTiles();
+    document.getElementById('saveBtn').disabled = true;
 
+    var storedGame = localStorage['savedGame'];
+    var lastPlayedGame = localStorage['lastPlayedGame'];
+
+    if (storedGame) {
+        storedGame = JSON.parse(storedGame);
+    }
+
+    if (storedGame && storedGame.actualLevel >= lastPlayedGame) {
+        actualLevel = storedGame.actualLevel;
+        actual = storedGame.actual;
+        size = storedGame.size;
+
+        historyOfMoves = storedGame.historyOfMoves;
+
+        loadGame(actualLevel);
+
+        movesCount = storedGame.movesCount;
+        setMovesCount(movesCount);
+
+        loadGameFromHistoryString(actual);
+    } else {
+        if (lastPlayedGame) {
+            loadGame(Number(lastPlayedGame));
+        } else {
+            loadGame(0);
+        }
+    }
 
     canvas.onmousedown = function(event) {
         selectedTile = getPosition(event.layerX, event.layerY);
@@ -32,11 +58,8 @@ function OnInit() {
 
     document.onmouseup = function(event) {
         getActual();
-        if (isWinner()) {
-            console.log('WINNER!');
-            document.getElementById('display').innerHTML = 'Winner!';
-        }
         selectedTile = undefined;
+        testIsWinner();
     };
 
     canvas.onmousemove = function(event) {
@@ -49,11 +72,23 @@ function OnInit() {
             }
         }
     }
+
+}
+
+function nextLevel() {
+    if (actualLevel + 1 === allLevels) {
+        alert('Gratulujeme, prešli ste všetky levely.');
+        loadGame(0);
+    } else {
+        if (actualLevel < allLevels) {
+            actualLevel++;
+        }
+        loadGame(actualLevel);
+    }
 }
 
 function newMoveToHistory() {
     getActual();
-    document.getElementById('undoBtn').disabled = false;
     historyOfMoves.push(actual);
     if (historyOfMoves.length > 3) {
         historyOfMoves.shift();
@@ -61,6 +96,7 @@ function newMoveToHistory() {
 }
 
 function isWinner() {
+    getActual();
     if (Array.isArray(solutions)) {
         for (var s in solutions) {
             if (actualIsSolution(actual, solutions[s].replace(/;/g,',') + ',')) {
@@ -81,7 +117,7 @@ function actualIsSolution(act, sol) {
     var solutionArray = sol.split(',');
 
     for (var tile in actualArray) {
-        if (actualArray[tile][0] === 'T' || actualArray[tile][0] === 'D') {
+        if (solutionArray[tile][0] === 'T' || solutionArray[tile][0] === 'D') {
             if (actualArray[tile] !== solutionArray[tile]) {
                 return false;
             }
@@ -111,15 +147,20 @@ function canChange(newTile, oldTile) {
 function changeTiles(indexA, indexB) {
     newMoveToHistory();
 
-    const tmpImg = tiles[indexA].image;
+    movesCount++;
+    setMovesCount(movesCount);
+
+    document.getElementById('saveBtn').disabled = false;
+
+    var tmpImg = tiles[indexA].image;
     tiles[indexA].image = tiles[indexB].image;
     tiles[indexB].image = tmpImg;
 
-    const tmpRot = tiles[indexA].rotation;
+    var tmpRot = tiles[indexA].rotation;
     tiles[indexA].rotation = tiles[indexB].rotation;
     tiles[indexB].rotation = tmpRot;
 
-    const tmpType = tiles[indexA].type;
+    var tmpType = tiles[indexA].type;
     tiles[indexA].type = tiles[indexB].type;
     tiles[indexB].type = tmpType;
 }
@@ -151,8 +192,8 @@ function loadTiles() {
     var blocks = json.rolltheball.blocks.block;
 
     for (var i in blocks) {
-        const img = new Image;
-        const regExp = new RegExp('^\\.|\\.jpg$|\\.gif$|.png$');
+        var img = new Image;
+        var regExp = new RegExp('^\\.|\\.jpg$|\\.gif$|.png$');
 
         if (regExp.test(blocks[i].img)) {
             img.src = 'img/tiles/' + blocks[i].img;
@@ -163,33 +204,70 @@ function loadTiles() {
 }
 
 function loadGame(gameLevel) {
-    const game = json.rolltheball.games.game[gameLevel];
-    const task = game.task;
-    const rows = task.split(';');
+    document.getElementById('nextBtn').disabled = true;
+    try {
+        var game = json.rolltheball.games.game[gameLevel];
+        var task = game.task;
+        var rows = task.split(';');
 
-    solutions = game.solution;
+        loadScore(gameLevel);
 
-    size = {verticalTiles: game.size.vertical, horizontalTiles: game.size.horizontal};
+        actualLevel = gameLevel;
+        allLevels = json.rolltheball.games.game.length;
+        document.getElementById('displayLevel').innerHTML = (actualLevel + 1) + '/' + allLevels;
 
-    tiles = [];
-    for (var y = 0; y < size.horizontalTiles; y++) {
-        var columns = rows[y].split(',');
-        for (var x = 0; x < size.verticalTiles; x++) {
-            const tile = {x: x, y: y, image: allTiles[columns[x]].image,
-                rotation: allTiles[columns[x]].rotation, type: columns[x]};
-            tiles.push(tile);
+
+        for (var l = 1; l <= allLevels; l++) {
+            var opt = document.createElement('option');
+            opt.value = l - 1;
+            opt.innerHTML = 'Level ' + l;
+            levelSelect.appendChild(opt);
         }
+
+        movesCount = 0;
+        setMovesCount(movesCount);
+
+        solutions = game.solution;
+
+        size = {verticalTiles: game.size.vertical, horizontalTiles: game.size.horizontal};
+
+        tiles = [];
+        for (var y = 0; y < size.horizontalTiles; y++) {
+            var columns = rows[y].split(',');
+            for (var x = 0; x < size.verticalTiles; x++) {
+                var tile = {x: x, y: y, image: allTiles[columns[x]].image,
+                    rotation: allTiles[columns[x]].rotation, type: columns[x]};
+                tiles.push(tile);
+            }
+        }
+
+        localStorage['lastPlayedGame'] = gameLevel;
+
+        if (actualLevel + 1 === allLevels) {
+            document.getElementById('nextBtn').innerHTML = 'Level 1';
+        } else {
+            document.getElementById('nextBtn').innerHTML = 'Next Level';
+        }
+
+        drawTiles();
+    } catch(err) {
+        console.error('Invalid game format! (XML file)');
     }
 }
 
 function undo() {
     if (historyOfMoves.length > 0) {
+        movesCount--;
+        setMovesCount(movesCount);
         loadGameFromHistoryString(historyOfMoves[historyOfMoves.length - 1]);
         historyOfMoves.pop();
-        if (historyOfMoves.length === 0) {
-            document.getElementById('undoBtn').disabled = true;
-        }
     }
+    document.getElementById('nextBtn').disabled = !isWinner();
+}
+
+function setMovesCount(movesCount) {
+    document.getElementById('displayMoves').innerHTML = movesCount;
+    document.getElementById('undoBtn').disabled = movesCount === 0;
 }
 
 function loadGameFromHistoryString(string) {
@@ -197,19 +275,20 @@ function loadGameFromHistoryString(string) {
     for (var y = 0; y < size.horizontalTiles; y++) {
         var tmpTiles = string.split(',');
         for (var x = 0; x < size.verticalTiles; x++) {
-            const tile = {x: x, y: y, image: allTiles[tmpTiles[size.horizontalTiles* y + x]].image,
+            var tile = {x: x, y: y, image: allTiles[tmpTiles[size.horizontalTiles* y + x]].image,
                 rotation: allTiles[tmpTiles[size.horizontalTiles * y + x]].rotation,
                 type: tmpTiles[size.horizontalTiles * y + x]};
             tiles.push(tile);
         }
     }
     drawTiles();
+    testIsWinner();
 }
 
 function drawTiles() {
     for (var i in tiles) {
-        const tileEdge = edgeSize / size.verticalTiles;
-        const angle = Number(tiles[i].rotation);
+        var tileEdge = edgeSize / size.verticalTiles;
+        var angle = Number(tiles[i].rotation);
 
         var x = tiles[i].x * tileEdge;
         var y = tiles[i].y * tileEdge;
@@ -225,8 +304,37 @@ function drawTiles() {
         graphics.translate(x, y);
         graphics.rotate(angle * Math.PI/180);
         graphics.drawImage(tiles[i].image, 0, 0, tileEdge, tileEdge);
-        //graphics.strokeRect(tiles[i].x * tileEdge, tiles[i].y * tileEdge, tileEdge, tileEdge);
         graphics.restore();
+    }
+}
+
+function testIsWinner() {
+    if (isWinner()) {
+        document.getElementById('nextBtn').disabled = false;
+        setScore();
+    } else {
+        document.getElementById('nextBtn').disabled = true;
+    }
+}
+
+function setScore() {
+    var storedScore = localStorage['scoreLevel' + actualLevel];
+    if (storedScore) {
+        if (Number(storedScore) > movesCount) {
+            localStorage['scoreLevel' + actualLevel] = movesCount;
+        }
+    } else {
+        localStorage['scoreLevel' + actualLevel] = movesCount;
+    }
+    loadScore(actualLevel);
+}
+
+function loadScore(level) {
+    var storedScore = localStorage['scoreLevel' + level];
+    if (storedScore) {
+        document.getElementById('displayScore').innerHTML = storedScore;
+    } else {
+        document.getElementById('displayScore').innerHTML = '---';
     }
 }
 
@@ -257,6 +365,39 @@ function xml2json(xml) {
     } catch (e) {
         console.log(e.message);
     }
+}
+
+function resetGame() {
+    loadGame(actualLevel);
+    historyOfMoves = [];
+    testIsWinner();
+    document.getElementById('saveBtn').disabled = false;
+}
+
+function saveGame() {
+    var lastGame = {};
+    getActual();
+
+    lastGame.actualLevel = actualLevel;
+    lastGame.actual = actual;
+    lastGame.size = size;
+    lastGame.historyOfMoves = historyOfMoves;
+    lastGame.movesCount = movesCount;
+
+    localStorage['savedGame'] = JSON.stringify(lastGame);
+
+    document.getElementById('saveBtn').disabled = true;
+}
+
+function setMockScore() {
+    localStorage['scoreLevel' + levelSelect.value ] = mockScoreInput.value;
+    loadScore(actualLevel);
+    mockScoreInput.value = '';
+}
+
+function getActualString() {
+    getActual();
+    console.log(actual);
 }
 
 OnInit();

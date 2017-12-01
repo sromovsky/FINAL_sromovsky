@@ -1,5 +1,11 @@
 .canvas {
     width: 100%;
+    max-height: 300px;
+    max-width: 300px;
     border: 1px solid #111111;
     box-shadow: 3px 3px 3px #222222;
+}
+
+.no-wrap {
+    white-space: nowrap;
 }
