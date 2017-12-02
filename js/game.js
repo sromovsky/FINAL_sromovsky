@@ -32,7 +32,7 @@ loadJsonFromXml('xml/rollTheBall.xml');
 loadTiles();
 
 function delayLoadTiles() {
-    setTimeout(OnInit, 1000);
+    setTimeout(OnInit, 2000);
 }
 
 function OnInit() {
