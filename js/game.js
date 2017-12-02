@@ -1,7 +1,9 @@
 document.getElementById('undoBtn').disabled = true;
 var canvas = document.getElementById('canvas');
 var mockScoreInput = document.getElementById('mockScore');
+var dateDisplay = document.getElementById('dateDisplay');
 var levelSelect = document.getElementById('levelSelect');
+var loader = document.getElementById('loader');
 var graphics = canvas.getContext('2d');
 var edgeSize = 800;
 
@@ -15,14 +17,32 @@ var json, size;
 var solutions, actual;
 var movesCount = 0;
 
+var touchActive;
+
+
+canvas.addEventListener('touchstart', function(e) {
+    document.documentElement.style.overflow = 'hidden';
+});
+
+document.addEventListener('touchend', function(e) {
+    document.documentElement.style.overflow = 'auto';
+});
+
+loadJsonFromXml('xml/rollTheBall.xml');
+loadTiles();
+
+function delayLoadTiles() {
+    setTimeout(OnInit, 1000);
+}
+
 function OnInit() {
     canvas.width = edgeSize;
     canvas.height = edgeSize;
 
-    loadJsonFromXml('xml/rollTheBall.xml');
-    loadTiles();
-
     document.getElementById('saveBtn').disabled = true;
+
+    var date = new Date();
+    dateDisplay.innerHTML = date.getDate() + '. ' + (date.getMonth() + 1) + '. ' + date.getFullYear();
 
     var storedGame = localStorage['savedGame'];
     var lastPlayedGame = localStorage['lastPlayedGame'];
@@ -64,15 +84,34 @@ function OnInit() {
 
     canvas.onmousemove = function(event) {
         if (selectedTile !== undefined) {
-            var newPosition = getPosition(event.layerX, event.layerY);
-            if (canChange(tiles[newPosition.index], tiles[selectedTile.index])) {
-                changeTiles(newPosition.index, selectedTile.index);
-                drawTiles();
-                selectedTile = getPosition(event.layerX, event.layerY);
-            }
+            moveTile(event.layerX, event.layerY);
+        }
+    };
+
+    function moveTile(x, y) {
+        var newPosition = getPosition(x, y);
+        if (newPosition && canChange(tiles[newPosition.index], tiles[selectedTile.index])) {
+            changeTiles(newPosition.index, selectedTile.index);
+            drawTiles();
+            selectedTile = getPosition(x, y);
         }
     }
 
+    $('#canvas').on("touchstart", function (e, touch) {
+        touchActive = true;
+        var touchX = e.originalEvent.touches[0].pageX - canvas.offsetLeft;
+        var touchY = e.originalEvent.touches[0].pageY - canvas.offsetTop;
+        selectedTile = getPosition(touchX, touchY);
+    }).on("touchend", function (e, touch) {
+        selectedTile = undefined;
+        testIsWinner();
+    }).on("touchmove", function (e, touch) {
+        var touchX = e.originalEvent.touches[0].pageX - canvas.offsetLeft;
+        var touchY = e.originalEvent.touches[0].pageY - canvas.offsetTop;
+        moveTile(touchX, touchY);
+    });
+
+    loader.style.display = 'none';
 }
 
 function nextLevel() {
@@ -217,8 +256,15 @@ function loadGame(gameLevel) {
         document.getElementById('displayLevel').innerHTML = (actualLevel + 1) + '/' + allLevels;
 
 
+        levelSelect.innerHTML = '';
+
+        var opt = document.createElement('option');
+        opt.value = -1;
+        opt.innerHTML = 'Last game';
+        levelSelect.appendChild(opt);
+
         for (var l = 1; l <= allLevels; l++) {
-            var opt = document.createElement('option');
+            opt = document.createElement('option');
             opt.value = l - 1;
             opt.innerHTML = 'Level ' + l;
             levelSelect.appendChild(opt);
@@ -246,7 +292,7 @@ function loadGame(gameLevel) {
         if (actualLevel + 1 === allLevels) {
             document.getElementById('nextBtn').innerHTML = 'Level 1';
         } else {
-            document.getElementById('nextBtn').innerHTML = 'Next Level';
+            document.getElementById('nextBtn').innerHTML = 'Ďalej';
         }
 
         drawTiles();
@@ -390,9 +436,17 @@ function saveGame() {
 }
 
 function setMockScore() {
-    localStorage['scoreLevel' + levelSelect.value ] = mockScoreInput.value;
+    if (mockScoreInput.value !== '') {
+        localStorage['scoreLevel' + actualLevel] = mockScoreInput.value;
+        mockScoreInput.value = '';
+    }
     loadScore(actualLevel);
-    mockScoreInput.value = '';
+
+    if (levelSelect.value !== '-1') {
+        localStorage['lastPlayedGame'] = levelSelect.value;
+        localStorage['savedGame'] = '';
+        levelSelect.value = '-1';
+    }
 }
 
 function getActualString() {
@@ -400,4 +454,4 @@ function getActualString() {
     console.log(actual);
 }
 
-OnInit();
+delayLoadTiles();

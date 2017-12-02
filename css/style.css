@@ -6,6 +6,23 @@
     box-shadow: 3px 3px 3px #222222;
 }
 
+.canvas:hover {
+    cursor: pointer;
+}
+
 .no-wrap {
     white-space: nowrap;
+}
+
+.loader {
+    background: #000000;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 65000;
+}
+
+.loader img {
+    width: 100%;
+    max-width: 400px;
 }
