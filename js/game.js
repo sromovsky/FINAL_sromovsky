@@ -72,16 +72,21 @@ function OnInit() {
         }
     }
 
+    //###
     canvas.onmousedown = function(event) {
         selectedTile = getPosition(event.layerX, event.layerY);
+        console.log(selectedTile);
     };
 
+    //###
     document.onmouseup = function(event) {
         getActual();
         selectedTile = undefined;
         testIsWinner();
+        console.log(tiles);
     };
 
+    //###
     canvas.onmousemove = function(event) {
         if (selectedTile !== undefined) {
             moveTile(event.layerX, event.layerY);
@@ -90,6 +95,7 @@ function OnInit() {
 
     function moveTile(x, y) {
         var newPosition = getPosition(x, y);
+        console.log(newPosition);
         if (newPosition && canChange(tiles[newPosition.index], tiles[selectedTile.index])) {
             changeTiles(newPosition.index, selectedTile.index);
             drawTiles();
@@ -204,6 +210,7 @@ function changeTiles(indexA, indexB) {
     tiles[indexB].type = tmpType;
 }
 
+//### ziskanie suradnic v ramci DIV canvas
 function getPosition(x, y) {
     var realEdge = canvas.offsetWidth / size.verticalTiles;
     var tile = {x: Math.ceil(x / realEdge) - 1, y: Math.ceil(y / realEdge) - 1};
@@ -216,6 +223,9 @@ function getPosition(x, y) {
     }
 }
 
+//###1 Z XML do JSON // skopiruj aj celu metodu xml2json(url) / tam nerobis zmeny
+// hned pri starte sa 1x vykona
+// stiahni oba JQuery.js
 function loadJsonFromXml(url) {
     $.ajax({
         async: false,
@@ -223,6 +233,7 @@ function loadJsonFromXml(url) {
         url: url,
         success: function (xml) {
             json = xml2json(xml);
+            console.log(json);
         }
     });
 }
